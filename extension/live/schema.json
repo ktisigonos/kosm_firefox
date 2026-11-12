@@ -1,0 +1,13 @@
+[
+  {
+    "namespace": "kosmLive",
+    "functions": [
+      {
+        "name": "watchPrefs",
+        "type": "function",
+        "description": "Sets the prefs in the profile's kosm-live.json now and whenever the file changes, until the extension stops.",
+        "parameters": []
+      }
+    ]
+  }
+]

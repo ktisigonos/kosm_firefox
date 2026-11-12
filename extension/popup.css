@@ -1,0 +1,25 @@
+body {
+  margin: 0;
+  min-width: 16em;
+  font: menu;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.5em 0;
+}
+
+li label {
+  display: flex;
+  gap: 0.6em;
+  align-items: center;
+  padding: 0.3em 1em;
+}
+
+li.current {
+  font-weight: bold;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  padding-bottom: 0.3em;
+  margin-bottom: 0.3em;
+}

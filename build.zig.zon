@@ -1,0 +1,28 @@
+.{
+    .name = .kosm_firefox,
+    .version = "0.0.0",
+    .fingerprint = 0x65fb7fb298274f50, // Changing this has security and trust implications.
+    .minimum_zig_version = "0.17.0",
+    .dependencies = .{
+        .kosm = .{
+            .url = "git+https://git.nnstdios.com/ktisigonos/kosm?ref=master#ed603e2aee4905cbf31a4f009720b87f4349220c",
+            .hash = "kosm-0.0.0-YCShsrzYCgCEeDHTKUNLEPX4ihmWpRxRECjxtvAMG2j3",
+        },
+        .kosm_json = .{
+            .url = "git+https://git.nnstdios.com/ktisigonos/kosm_json?ref=master#125138c7ee3c5d75c2dc102fada2d6f63e6a2c7f",
+            .hash = "kosm_json-0.0.0-F6-IdUN_AACuHqsF6DZs7qidRylJvAMBBu2eZ-6b-f6m",
+        },
+        .kosm_userjs = .{
+            .url = "git+https://git.nnstdios.com/ktisigonos/kosm_userjs?ref=master#b9560923899f9b6563e0d3d2d36e4476df44907e",
+            .hash = "kosm_userjs-0.0.0-f1tp77BZAADd0mdzzTFIKYGSPq6GW03AK8N_nzAtJz-S",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "root.zig",
+        "App.zig",
+        "extension",
+        "README.md",
+    },
+}
