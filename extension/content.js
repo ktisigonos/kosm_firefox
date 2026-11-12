@@ -4,11 +4,18 @@
 
 /// What storage holds: `values` as kosm wrote them ({ theme }), `sites` as kosmSites keeps them.
 const state = { values: null, sites: [], site: null };
+/// The theme the page shows, as JSON, or null while Dark Reader is off.
+let shown = null;
 
 function update() {
   if (state.values === null || state.site === null) return;
-  if (state.values.theme && kosmSites.isOn(state.sites, state.site)) DarkReader.enable(state.values.theme);
-  else DarkReader.disable();
+  const theme = state.values.theme && kosmSites.isOn(state.sites, state.site) ? JSON.stringify(state.values.theme) : null;
+  if (theme === shown) return;
+  // Enabling an enabled Dark Reader keeps its old colors, so it is turned off first; both happen
+  // before the page paints again, so nothing flashes.
+  DarkReader.disable();
+  if (theme !== null) DarkReader.enable(state.values.theme);
+  shown = theme;
 }
 
 /// The top frame knows its site; a frame inside it asks for its tab's, which it can't read.
