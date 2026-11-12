@@ -7,8 +7,9 @@ colors and font, through kosm's own extension, and changed at once by every appl
   toolbar button with an on/off switch for the current site and every site switched before.
   It can be signed for Mozilla's Firefox, but isn't yet.
 - **Kosm Live** (`extension/live/`) is Kosm plus an experiment API: it also sets the prefs other
-  apps write for it in the running browser. `kosm_zen` writes its prefs for it, so Zen's own
-  UI (the kosm mod's colors) changes at once too, with no restart. Experiment APIs need a browser
+  apps write for it in the running browser, and calls the window methods they name to recompute
+  what the browser derives from those prefs. `kosm_zen` writes its prefs for it, so Zen's own UI
+  (the kosm mod's colors, the accent) changes at once too, just as after a restart. Experiment APIs need a browser
   that runs unsigned extensions using them, such as Zen; Mozilla's Firefox won't load it.
 
 Nothing of kosm runs while the browser is closed: the browser starts `kosm relay` while it

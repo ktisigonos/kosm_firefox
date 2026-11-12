@@ -1,6 +1,7 @@
 // Kosm Live's privileged part: sets the prefs kosm wrote to the profile's kosm-live.json in the
-// running browser, then flips the prefs that tell the browser to re-read them (Zen rebuilds its
-// mods). Only browsers that let unsigned extensions use experiment APIs run it.
+// running browser, flips the prefs that tell the browser to re-read them (Zen rebuilds its mods),
+// then calls the window methods that recompute what the browser derives from them at startup.
+// Only browsers that let unsigned extensions use experiment APIs run it.
 "use strict";
 
 const { setInterval, clearInterval } = ChromeUtils.importESModule("resource://gre/modules/Timer.sys.mjs");
@@ -30,8 +31,23 @@ function setPref(name, value) {
   }
 }
 
-/// Sets every pref of `live` ({ prefs, flip }), then flips `flip` once something changed or on the
-/// first read, so the browser picks up files kosm wrote while it was closed too.
+/// A window method named as `object.method`, such as `gZenThemePicker.handleDarkModeChange`.
+const windowMethodPattern = /^([A-Za-z_$][\w$]*)\.([A-Za-z_$][\w$]*)$/;
+
+/// Calls the method named `name` (`object.method`) on every browser window that has it.
+function callInWindows(name) {
+  const match = windowMethodPattern.exec(name);
+  if (!match) throw new Error(`${name} is not a window method named as object.method`);
+  const [, object, method] = match;
+  for (const window of Services.wm.getEnumerator("navigator:browser")) {
+    const target = window[object];
+    if (typeof target?.[method] === "function") target[method]();
+  }
+}
+
+/// Sets every pref of `live` ({ prefs, flip, call }), then flips `flip` and calls `call` once
+/// something changed or on the first read, so the browser picks up files kosm wrote while it was
+/// closed too.
 function apply(live, first) {
   let changed = false;
   for (const [name, value] of Object.entries(live.prefs ?? {})) {
@@ -43,6 +59,13 @@ function apply(live, first) {
   }
   if (!changed && !first) return;
   for (const name of live.flip ?? []) Services.prefs.setBoolPref(name, !Services.prefs.getBoolPref(name, false));
+  for (const name of live.call ?? []) {
+    try {
+      callInWindows(name);
+    } catch (error) {
+      console.error(`kosm: cannot call ${name}: ${error.message}`);
+    }
+  }
 }
 
 this.kosmLive = class extends ExtensionAPI {
