@@ -27,7 +27,7 @@ format: kosm.Format = .{},
 
 /// Dark Reader's theme. Field names are Dark Reader's, in Zig casing; null ones are not written.
 pub const Theme = struct {
-    /// `mode`: dark pages, or light ones dimmed. null: dark.
+    /// `mode`: dark pages, or light ones dimmed. null: dark. `from`: `.dimmed` for a light theme.
     mode: ?Mode = null,
     /// `brightness`: in percent. null: 100.
     brightness: ?u16 = null,
@@ -102,13 +102,18 @@ const live_files = [_]struct { name: []const u8, content: []const u8 }{
     .{ .name = "darkreader-LICENSE", .content = @embedFile("extension/darkreader-LICENSE") },
 };
 
-/// Colors from the theme: each scheme's background and text from black and white, the
-/// scrollbar and selection from the foreground and background roles, and Kosm Live in every
-/// Zen profile. The font is left to the page.
+/// Colors from the theme: the mode from the theme's (dark pages, or light ones dimmed for a
+/// light theme), each scheme's background and text from black and white, the scrollbar and
+/// selection from the foreground and background roles, and Kosm Live in every Zen profile. The
+/// font is left to the page.
 pub fn from(theme: kosm.Theme) App {
     const palette = theme.palette;
     return .{
         .theme = .{
+            .mode = switch (theme.mode) {
+                .dark => .dark,
+                .light => .dimmed,
+            },
             .dark_scheme_background_color = palette.black,
             .dark_scheme_text_color = palette.white,
             .light_scheme_background_color = palette.white,
@@ -365,6 +370,13 @@ test "the values are Dark Reader's theme by its own names, the font a quoted CSS
         \\}
         \\
     , (try fixture.file(".local/share/kosm/firefox/values.json")).new);
+}
+
+test "a light theme dims light pages, a dark one turns them dark" {
+    try testing.expectEqual(.dark, from(test_theme).theme.mode);
+    var light = test_theme;
+    light.mode = .light;
+    try testing.expectEqual(.dimmed, from(light).theme.mode);
 }
 
 test "the browser starts the relay through an executable launcher its native manifest names" {

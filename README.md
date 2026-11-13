@@ -35,7 +35,7 @@ Dark Reader or a Stylus font style, remove them.
 
 | Field | Default |
 |---|---|
-| `theme.mode` | null: dark; `.dimmed` dims light pages instead |
+| `theme.mode` | null: dark; `.dimmed` dims light pages instead; `from`: `.dark`, or `.dimmed` for a light theme |
 | `theme.brightness`, `theme.contrast` | null: 100 (percent) |
 | `theme.grayscale`, `theme.sepia` | null: 0 (percent) |
 | `theme.text_stroke` | null: 0 (pixels, 0..1) |
