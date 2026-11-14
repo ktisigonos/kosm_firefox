@@ -4,7 +4,7 @@ Firefox-based browsers for kosm: every page darkened by Dark Reader's engine in 
 colors and font, through kosm's own extension, and changed at once by every apply.
 
 - **Kosm** (`extension/`) styles pages: Dark Reader's engine in the values kosm wrote, and a
-  toolbar button with an on/off switch for the current site and every site switched before.
+  toolbar button with a colors and a font switch for the current site and every site switched before.
   It can be signed for Mozilla's Firefox, but isn't yet.
 - **Kosm Live** (`extension/live/`) is Kosm plus an experiment API: it also sets the prefs other
   apps write for it in the running browser, and calls the window methods they name to recompute
@@ -61,4 +61,4 @@ An `App{}` writes nothing.
 
 `extension/darkreader.js` is the npm package `darkreader` 4.9.135 (MIT, `extension/darkreader-LICENSE`),
 unchanged. The engine has none of the Dark Reader extension's per-site fixes, so a few sites look
-worse than with the extension; switch those off with the toolbar button.
+worse than with the extension; switch their colors off with the toolbar button.

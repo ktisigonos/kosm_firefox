@@ -1,5 +1,5 @@
 //! Every Firefox-based browser through kosm's own extension: pages darkened by Dark Reader's
-//! engine in the kosmos' colors and font, with a per-site on/off toggle. The extension gets the
+//! engine in the kosmos' colors and font, with per-site colors and font toggles. The extension gets the
 //! values from `kosm relay`, which the browser starts while it runs, so an apply reaches open
 //! pages at once. Kosm Live, the same extension able to set prefs, is installed into `live`'s
 //! profiles and sets the prefs other apps (`kosm_zen`) write for it in the running browser.
@@ -95,6 +95,7 @@ const live_files = [_]struct { name: []const u8, content: []const u8 }{
     .{ .name = "background.js", .content = @embedFile("extension/background.js") },
     .{ .name = "content.js", .content = @embedFile("extension/content.js") },
     .{ .name = "sites.js", .content = @embedFile("extension/sites.js") },
+    .{ .name = "font.js", .content = @embedFile("extension/font.js") },
     .{ .name = "popup.html", .content = @embedFile("extension/popup.html") },
     .{ .name = "popup.js", .content = @embedFile("extension/popup.js") },
     .{ .name = "popup.css", .content = @embedFile("extension/popup.css") },

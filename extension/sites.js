@@ -1,16 +1,17 @@
-// The per-site toggle, shared by pages and the popup. Storage key "sites" holds every site toggled,
-// the most recent first, each as { site, on }; a site not in it is on.
+// The per-site toggles, shared by pages and the popup. Storage key "sites" holds every site toggled,
+// the most recent first, each as { site, colors, font }; a site not in it has both on.
 "use strict";
 
 const kosmSites = {
-  /// Whether kosm styles `site`.
-  isOn(sites, site) {
+  /// What kosm styles on `site`: { colors, font }, each true unless toggled off.
+  togglesOf(sites, site) {
     const entry = sites.find((toggled) => toggled.site === site);
-    return entry === undefined || entry.on;
+    // Entries stored before the two toggles hold a single `on` for both.
+    return { colors: entry?.colors ?? entry?.on ?? true, font: entry?.font ?? entry?.on ?? true };
   },
 
-  /// `sites` with `site` set to `on` and moved to the front.
-  toggled(sites, site, on) {
-    return [{ site, on }, ...sites.filter((toggled) => toggled.site !== site)];
+  /// `sites` with `site` set to `toggles` ({ colors, font }) and moved to the front.
+  toggled(sites, site, toggles) {
+    return [{ site, colors: toggles.colors, font: toggles.font }, ...sites.filter((toggled) => toggled.site !== site)];
   },
 };

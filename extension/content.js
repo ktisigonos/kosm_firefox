@@ -1,21 +1,30 @@
-// Styles every page with Dark Reader's engine in the kosmos' colors and font, unless its site is
-// toggled off. Follows every change to the values or the toggles at once.
+// Styles every page in the kosmos' colors through Dark Reader's engine and in its font, each
+// unless the page's site has it toggled off. Follows every change to the values or toggles at once.
 "use strict";
 
 /// What storage holds: `values` as kosm wrote them ({ theme }), `sites` as kosmSites keeps them.
 const state = { values: null, sites: [], site: null };
-/// The theme the page shows, as JSON, or null while Dark Reader is off.
-let shown = null;
+/// The colors and font the page shows, as JSON, or null for either while it is off.
+const shown = { colors: null, font: null };
 
 function update() {
   if (state.values === null || state.site === null) return;
-  const theme = state.values.theme && kosmSites.isOn(state.sites, state.site) ? JSON.stringify(state.values.theme) : null;
-  if (theme === shown) return;
-  // Enabling an enabled Dark Reader keeps its old colors, so it is turned off first; both happen
-  // before the page paints again, so nothing flashes.
-  DarkReader.disable();
-  if (theme !== null) DarkReader.enable(state.values.theme);
-  shown = theme;
+  const theme = state.values.theme ?? null;
+  const toggles = kosmSites.togglesOf(state.sites, state.site);
+  // The font is kosmFont's alone, so Dark Reader gets the colors without it.
+  const colors = theme !== null && toggles.colors ? JSON.stringify({ ...theme, useFont: false, textStroke: 0 }) : null;
+  const font = theme !== null && toggles.font ? JSON.stringify(theme) : null;
+  if (colors !== shown.colors) {
+    // Enabling an enabled Dark Reader keeps its old colors, so it is turned off first; both happen
+    // before the page paints again, so nothing flashes.
+    DarkReader.disable();
+    if (colors !== null) DarkReader.enable(JSON.parse(colors));
+    shown.colors = colors;
+  }
+  if (font !== shown.font) {
+    kosmFont.show(font === null ? null : theme);
+    shown.font = font;
+  }
 }
 
 /// The top frame knows its site; a frame inside it asks for its tab's, which it can't read.
