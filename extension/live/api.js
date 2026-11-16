@@ -4,10 +4,14 @@
 // Only browsers that let unsigned extensions use experiment APIs run it.
 "use strict";
 
-const { setInterval, clearInterval } = ChromeUtils.importESModule("resource://gre/modules/Timer.sys.mjs");
+const { setInterval, clearInterval, setTimeout } = ChromeUtils.importESModule("resource://gre/modules/Timer.sys.mjs");
 
 /// How often the file is checked for a change, in milliseconds.
 const checkIntervalMilliseconds = 500;
+
+/// How long after a change the windows are repainted, in milliseconds: long enough for pages to
+/// have taken their new colors, which reach them through the other half of the extension.
+const repaintDelayMilliseconds = 1000;
 
 /// Sets `value` as pref `name` unless it already holds it. True when it changed.
 function setPref(name, value) {
@@ -45,6 +49,18 @@ function callInWindows(name) {
   }
 }
 
+/// Repaints every browser window as a whole once. A page turning translucent can otherwise stay
+/// drawn opaque until the window is refocused, as the browser keeps the window's opaque area: a
+/// near-1 opacity on the window's root for two frames makes it recompute that area.
+function repaintWindows() {
+  for (const window of Services.wm.getEnumerator("navigator:browser")) {
+    const style = window.document.documentElement.style;
+    if (style.getPropertyValue("opacity") !== "") continue;
+    style.setProperty("opacity", "0.999");
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => style.removeProperty("opacity")));
+  }
+}
+
 /// Sets every pref of `live` ({ prefs, flip, call }), then flips `flip` and calls `call` once
 /// something changed or on the first read, so the browser picks up files kosm wrote while it was
 /// closed too.
@@ -66,6 +82,7 @@ function apply(live, first) {
       console.error(`kosm: cannot call ${name}: ${error.message}`);
     }
   }
+  setTimeout(repaintWindows, repaintDelayMilliseconds);
 }
 
 this.kosmLive = class extends ExtensionAPI {
