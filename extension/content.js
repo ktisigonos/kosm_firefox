@@ -1,9 +1,10 @@
 // Styles every page in the kosmos' colors through Dark Reader's engine, in its font and with its
-// corners, each unless the page's site has it toggled off. Follows every change to the values or toggles at once.
+// corners, each as the site's switches or else the global ones say. Follows every change to the values or toggles at once.
 "use strict";
 
-/// What storage holds: `values` as kosm wrote them ({ theme, borderRadius }), `sites` as kosmSites keeps them.
-const state = { values: null, sites: [], site: null };
+/// What storage holds: `values` as kosm wrote them ({ theme, enabled, borderRadius }), `global`
+/// and `sites` as kosmSites keeps them.
+const state = { values: null, global: {}, sites: [], site: null };
 /// The colors and font the page shows, as JSON, and its corners as CSS; null for each while off.
 const shown = { colors: null, font: null, corners: null };
 
@@ -15,7 +16,7 @@ function cornersCss(borderRadius) {
 function update() {
   if (state.values === null || state.site === null) return;
   const theme = state.values.theme ?? null;
-  const toggles = kosmSites.togglesOf(state.sites, state.site);
+  const toggles = kosmSites.togglesOf(state.sites, state.site, kosmSites.globalOf(state.values, state.global));
   // The font is kosmFont's alone, so Dark Reader gets the colors without it.
   const colors = theme !== null && toggles.colors ? JSON.stringify({ ...theme, useFont: false, textStroke: 0 }) : null;
   const font = theme !== null && toggles.font ? JSON.stringify(theme) : null;
@@ -51,12 +52,14 @@ DarkReader.setFetchMethod((url) => fetch(url));
 browser.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
   if (changes.values) state.values = changes.values.newValue ?? null;
+  if (changes.global) state.global = changes.global.newValue ?? {};
   if (changes.sites) state.sites = changes.sites.newValue ?? [];
   update();
 });
 
-Promise.all([browser.storage.local.get(["values", "sites"]), findSite()]).then(([stored, site]) => {
+Promise.all([browser.storage.local.get(["values", "global", "sites"]), findSite()]).then(([stored, site]) => {
   state.values = stored.values ?? null;
+  state.global = stored.global ?? {};
   state.sites = stored.sites ?? [];
   state.site = site;
   update();

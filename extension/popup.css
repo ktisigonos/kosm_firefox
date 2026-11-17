@@ -36,3 +36,8 @@ tr.current {
   font-weight: bold;
   border-bottom: 1px solid color-mix(in srgb, currentColor 25%, transparent);
 }
+
+tr.global {
+  font-style: italic;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+}

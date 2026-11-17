@@ -3,10 +3,10 @@
 Firefox-based browsers for kosm: every page darkened by Dark Reader's engine in the kosmos'
 colors and font, through kosm's own extension, and changed at once by every apply.
 
-- **Kosm** (`extension/`) styles pages: Dark Reader's engine in the values kosm wrote, optionally
-  corners forced to one radius, and a toolbar button with a colors, a font and (while corners are
-  forced) a corners switch for the current site and every site switched before. Corners are off
-  on every site until switched on there.
+- **Kosm** (`extension/`) styles pages: Dark Reader's engine in the values kosm wrote, the
+  kosmos' font, and optionally corners forced to one radius. Its toolbar button has a colors, a
+  font and (while kosm wrote a radius) a corners switch for all sites, for the current site and
+  for every site switched before.
   It can be signed for Mozilla's Firefox, but isn't yet.
 - **Kosm Live** (`extension/live/`) is Kosm plus an experiment API: it also sets the prefs other
   apps write for it in the running browser, and calls the window methods they name to recompute
@@ -19,7 +19,8 @@ runs, which sends the values file to the extension now and whenever an apply cha
 
 ## What it writes
 
-- `~/.local/share/kosm/firefox/values.json`: Dark Reader's theme, and the forced border radius.
+- `~/.local/share/kosm/firefox/values.json`: Dark Reader's theme, the global switches and the
+  forced border radius.
 - `~/.local/share/kosm/firefox/relay`: the script the browser starts, running `kosm relay`.
 - `~/.mozilla/native-messaging-hosts/kosm_firefox.json`: tells Firefox and Zen where the relay is.
 - With `live`: Kosm Live in `~/.local/share/kosm/firefox/live/`, and in every live profile a file
@@ -49,8 +50,10 @@ Dark Reader or a Stylus font style, remove them.
 | `theme.selection_color` | null: from the page; `from`: the theme's `state.selected` of the background |
 | `theme.style_system_controls` | null: Dark Reader's choice |
 | `theme.font_family` | null: each page's fonts; families in fallback order |
-| `border_radius` | null: each page's own corners; `.{ .pixels = 8 }` forces 8px on the sites switched on in the toolbar button, over even their `!important` corners |
+| `border_radius` | null: each page's own corners; `.{ .pixels = 8 }` forces 8px while corners are on, over even pages' `!important` corners |
 | `border_radius.selector` | `*:not(html, body)`: every element but the page itself; any CSS selector |
+| `enabled.colors`, `enabled.font` | on: every site in the colors and font |
+| `enabled.corners` | off: no site gets `border_radius` until switched on |
 | `kosm_binary` | `~/.local/bin/kosm` |
 | `directory` | `~/.local/share/kosm/firefox` |
 | `native_hosts` | `~/.mozilla/native-messaging-hosts` (LibreWolf: add `~/.librewolf/native-messaging-hosts`) |
@@ -67,10 +70,16 @@ An `App{}` writes nothing.
 unchanged. The engine has none of the Dark Reader extension's per-site fixes, so a few sites look
 worse than with the extension; switch their colors off with the toolbar button.
 
+## Switches
+
+Each of colors, font and corners is on or off per site: a site's own switch if you set one in
+the toolbar button, else the "All sites" row, else `enabled`. Switching "All sites" back to what
+`enabled` says makes it follow `enabled` again, so a later apply changes it.
+
 ## Corners
 
-Corners are opt-in: a site keeps its own until you tick Corners for it in the toolbar button. The
-border radius then goes into each of its frames as a user stylesheet, so it wins over every page's own
+Corners are opt-in: `enabled.corners` is off, so pages keep their own until you turn it on or
+tick Corners for all sites or one. The border radius goes into each frame as a user stylesheet, so it wins over every page's own
 corners. It also rounds what a page keeps square or round on purpose (circular avatars become
-rounded squares); narrow `selector`, or switch corners off for the site again.
+rounded squares); narrow `selector`, or switch corners off for a site with the toolbar button.
 Elements inside shadow roots keep their own corners.

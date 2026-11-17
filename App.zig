@@ -11,9 +11,12 @@ const kosm = @import("kosm");
 
 /// Dark Reader's theme for pages. Null fields are not written, so Dark Reader's own apply.
 theme: Theme = .{},
-/// Corners forced on the sites switched on in the toolbar button (none until then), over each
-/// page's own, even its `!important` ones. null: each page's own corners everywhere.
+/// Corners forced on pages, over each page's own, even its `!important` ones, while
+/// `enabled.corners` is on. null: each page's own corners.
 border_radius: ?BorderRadius = null,
+/// What every site is styled with unless the toolbar button's "All sites" row or the site's own
+/// row says otherwise.
+enabled: Enabled = .{},
 /// The kosm the browser starts as the relay; `~` is expanded. Default: `~/.local/bin/kosm`.
 kosm_binary: []const u8 = "~/.local/bin/kosm",
 /// Where the values, the relay's launcher and Kosm Live are written.
@@ -67,9 +70,20 @@ pub const Theme = struct {
 /// Corners forced on pages.
 pub const BorderRadius = struct {
     /// The radius, in pixels.
-    pixels: u16,
+    pixels: u32,
     /// The elements that get it, a CSS selector. Default: every element but the page itself.
     selector: []const u8 = "*:not(html, body)",
+};
+
+/// The global switches, each the default of the toolbar button's "All sites" row.
+pub const Enabled = struct {
+    /// Pages in `theme`'s colors. Default: on.
+    colors: bool = true,
+    /// Pages in `theme.font_family` and `theme.text_stroke`. Default: on.
+    font: bool = true,
+    /// Pages with `border_radius`'s corners. Default: off, as it rounds what pages keep square
+    /// on purpose.
+    corners: bool = false,
 };
 
 /// Dark Reader's `mode`.
@@ -165,14 +179,16 @@ pub fn apply(self: App, output: *kosm.Output) !void {
 
 fn isEmpty(self: App) bool {
     if (self.live != null or self.border_radius != null) return false;
+    if (!std.meta.eql(self.enabled, Enabled{})) return false;
     inline for (@typeInfo(Theme).@"struct".field_names) |name| {
         if (@field(self.theme, name) != null) return false;
     }
     return true;
 }
 
-/// What `values.json` holds: `{ "theme": ... }`, Dark Reader's theme with its own names, and
-/// with `border_radius` `"borderRadius": { "pixels": ..., "selector": ... }`.
+/// What `values.json` holds: `{ "theme": ..., "enabled": ... }`, Dark Reader's theme with its own
+/// names and the global switches, and with `border_radius` `"borderRadius": { "pixels": ...,
+/// "selector": ... }`.
 fn valuesTable(self: App, allocator: std.mem.Allocator) !kosm.Value {
     var entries: std.ArrayList(kosm.Value.Entry) = .empty;
     const fields = @typeInfo(Theme).@"struct";
@@ -197,6 +213,11 @@ fn valuesTable(self: App, allocator: std.mem.Allocator) !kosm.Value {
     }
     var root: std.ArrayList(kosm.Value.Entry) = .empty;
     try root.append(allocator, .{ .key = "theme", .value = .{ .table = entries.items } });
+    var enabled: std.ArrayList(kosm.Value.Entry) = .empty;
+    inline for (@typeInfo(Enabled).@"struct".field_names) |name| {
+        try enabled.append(allocator, .{ .key = name, .value = .{ .boolean = @field(self.enabled, name) } });
+    }
+    try root.append(allocator, .{ .key = "enabled", .value = .{ .table = enabled.items } });
     if (self.border_radius) |border_radius| {
         const radius = try allocator.dupe(kosm.Value.Entry, &.{
             .{ .key = "pixels", .value = .{ .integer = border_radius.pixels } },
@@ -387,21 +408,31 @@ test "the values are Dark Reader's theme by its own names, the font a quoted CSS
         \\    "scrollbarColor": "#b7dce5",
         \\    "useFont": true,
         \\    "fontFamily": "\"Maple \\\"Mono\\\"\", \"sans-serif\""
+        \\  },
+        \\  "enabled": {
+        \\    "colors": true,
+        \\    "font": true,
+        \\    "corners": false
         \\  }
         \\}
         \\
     , (try fixture.file(".local/share/kosm/firefox/values.json")).new);
 }
 
-test "a border radius is written beside the theme, and alone is enough to write the values" {
+test "a border radius and the switches are written beside the theme, and alone are enough to write the values" {
     var fixture: Fixture = undefined;
     try fixture.init(&.{});
     defer fixture.deinit();
-    const app: App = .{ .border_radius = .{ .pixels = 8 } };
+    const app: App = .{ .border_radius = .{ .pixels = 8 }, .enabled = .{ .font = false, .corners = true } };
     try app.apply(&fixture.output);
     try testing.expectEqualStrings(
         \\{
         \\  "theme": {},
+        \\  "enabled": {
+        \\    "colors": true,
+        \\    "font": false,
+        \\    "corners": true
+        \\  },
         \\  "borderRadius": {
         \\    "pixels": 8,
         \\    "selector": "*:not(html, body)"
