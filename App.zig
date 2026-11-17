@@ -11,6 +11,9 @@ const kosm = @import("kosm");
 
 /// Dark Reader's theme for pages. Null fields are not written, so Dark Reader's own apply.
 theme: Theme = .{},
+/// Corners forced on pages, over each page's own, even its `!important` ones. null: each
+/// page's own corners.
+border_radius: ?BorderRadius = null,
 /// The kosm the browser starts as the relay; `~` is expanded. Default: `~/.local/bin/kosm`.
 kosm_binary: []const u8 = "~/.local/bin/kosm",
 /// Where the values, the relay's launcher and Kosm Live are written.
@@ -59,6 +62,14 @@ pub const Theme = struct {
     /// `fontFamily`: the families every page is shown in, in fallback order (code and icon
     /// fonts are kept). null: each page's own fonts.
     font_family: ?[]const []const u8 = null,
+};
+
+/// Corners forced on pages.
+pub const BorderRadius = struct {
+    /// The radius, in pixels.
+    pixels: u16,
+    /// The elements that get it, a CSS selector. Default: every element but the page itself.
+    selector: []const u8 = "*:not(html, body)",
 };
 
 /// Dark Reader's `mode`.
@@ -153,14 +164,15 @@ pub fn apply(self: App, output: *kosm.Output) !void {
 }
 
 fn isEmpty(self: App) bool {
-    if (self.live != null) return false;
+    if (self.live != null or self.border_radius != null) return false;
     inline for (@typeInfo(Theme).@"struct".field_names) |name| {
         if (@field(self.theme, name) != null) return false;
     }
     return true;
 }
 
-/// What `values.json` holds: `{ "theme": ... }`, Dark Reader's theme with its own names.
+/// What `values.json` holds: `{ "theme": ... }`, Dark Reader's theme with its own names, and
+/// with `border_radius` `"borderRadius": { "pixels": ..., "selector": ... }`.
 fn valuesTable(self: App, allocator: std.mem.Allocator) !kosm.Value {
     var entries: std.ArrayList(kosm.Value.Entry) = .empty;
     const fields = @typeInfo(Theme).@"struct";
@@ -183,8 +195,16 @@ fn valuesTable(self: App, allocator: std.mem.Allocator) !kosm.Value {
             }
         }
     }
-    const root = try allocator.dupe(kosm.Value.Entry, &.{.{ .key = "theme", .value = .{ .table = entries.items } }});
-    return .{ .table = root };
+    var root: std.ArrayList(kosm.Value.Entry) = .empty;
+    try root.append(allocator, .{ .key = "theme", .value = .{ .table = entries.items } });
+    if (self.border_radius) |border_radius| {
+        const radius = try allocator.dupe(kosm.Value.Entry, &.{
+            .{ .key = "pixels", .value = .{ .integer = border_radius.pixels } },
+            .{ .key = "selector", .value = .{ .string = border_radius.selector } },
+        });
+        try root.append(allocator, .{ .key = "borderRadius", .value = .{ .table = radius } });
+    }
+    return .{ .table = root.items };
 }
 
 /// Writes Kosm Live's files, and into every live profile the file that installs it and the prefs
@@ -367,6 +387,24 @@ test "the values are Dark Reader's theme by its own names, the font a quoted CSS
         \\    "scrollbarColor": "#b7dce5",
         \\    "useFont": true,
         \\    "fontFamily": "\"Maple \\\"Mono\\\"\", \"sans-serif\""
+        \\  }
+        \\}
+        \\
+    , (try fixture.file(".local/share/kosm/firefox/values.json")).new);
+}
+
+test "a border radius is written beside the theme, and alone is enough to write the values" {
+    var fixture: Fixture = undefined;
+    try fixture.init(&.{});
+    defer fixture.deinit();
+    const app: App = .{ .border_radius = .{ .pixels = 8 } };
+    try app.apply(&fixture.output);
+    try testing.expectEqualStrings(
+        \\{
+        \\  "theme": {},
+        \\  "borderRadius": {
+        \\    "pixels": 8,
+        \\    "selector": "*:not(html, body)"
         \\  }
         \\}
         \\

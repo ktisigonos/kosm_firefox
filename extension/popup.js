@@ -1,4 +1,5 @@
 // The toggles for the current tab's site, then every site toggled before, the most recent first.
+// Corners get a column only while kosm forces them.
 "use strict";
 
 const list = document.getElementById("sites");
@@ -12,7 +13,7 @@ function checkbox(checked, title, onChange) {
   return toggle;
 }
 
-function row(site, toggles, current) {
+function row(site, toggles, current, withCorners) {
   const item = document.createElement("tr");
   if (current) item.className = "current";
   const name = document.createElement("td");
@@ -22,6 +23,11 @@ function row(site, toggles, current) {
   const font = document.createElement("td");
   font.append(checkbox(toggles.font, `Font on ${site}`, (on) => toggleSite(site, { ...toggles, font: on })));
   item.append(name, colors, font);
+  if (withCorners) {
+    const corners = document.createElement("td");
+    corners.append(checkbox(toggles.corners, `Corners on ${site}`, (on) => toggleSite(site, { ...toggles, corners: on })));
+    item.append(corners);
+  }
   return item;
 }
 
@@ -37,11 +43,14 @@ async function render() {
   try {
     current = new URL(tab.url).hostname;
   } catch {}
-  const sites = (await browser.storage.local.get("sites")).sites ?? [];
+  const stored = await browser.storage.local.get(["sites", "values"]);
+  const sites = stored.sites ?? [];
+  const withCorners = (stored.values?.borderRadius ?? null) !== null;
+  document.getElementById("corners").hidden = !withCorners;
   const rows = [];
-  if (current !== "") rows.push(row(current, kosmSites.togglesOf(sites, current), true));
+  if (current !== "") rows.push(row(current, kosmSites.togglesOf(sites, current), true, withCorners));
   for (const toggled of sites) {
-    if (toggled.site !== current) rows.push(row(toggled.site, kosmSites.togglesOf(sites, toggled.site), false));
+    if (toggled.site !== current) rows.push(row(toggled.site, kosmSites.togglesOf(sites, toggled.site), false, withCorners));
   }
   list.replaceChildren(...rows);
 }

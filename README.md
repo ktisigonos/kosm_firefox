@@ -3,8 +3,9 @@
 Firefox-based browsers for kosm: every page darkened by Dark Reader's engine in the kosmos'
 colors and font, through kosm's own extension, and changed at once by every apply.
 
-- **Kosm** (`extension/`) styles pages: Dark Reader's engine in the values kosm wrote, and a
-  toolbar button with a colors and a font switch for the current site and every site switched before.
+- **Kosm** (`extension/`) styles pages: Dark Reader's engine in the values kosm wrote, optionally
+  corners forced to one radius, and a toolbar button with a colors, a font and (while corners are
+  forced) a corners switch for the current site and every site switched before.
   It can be signed for Mozilla's Firefox, but isn't yet.
 - **Kosm Live** (`extension/live/`) is Kosm plus an experiment API: it also sets the prefs other
   apps write for it in the running browser, and calls the window methods they name to recompute
@@ -17,7 +18,7 @@ runs, which sends the values file to the extension now and whenever an apply cha
 
 ## What it writes
 
-- `~/.local/share/kosm/firefox/values.json`: Dark Reader's theme.
+- `~/.local/share/kosm/firefox/values.json`: Dark Reader's theme, and the forced border radius.
 - `~/.local/share/kosm/firefox/relay`: the script the browser starts, running `kosm relay`.
 - `~/.mozilla/native-messaging-hosts/kosm_firefox.json`: tells Firefox and Zen where the relay is.
 - With `live`: Kosm Live in `~/.local/share/kosm/firefox/live/`, and in every live profile a file
@@ -47,6 +48,8 @@ Dark Reader or a Stylus font style, remove them.
 | `theme.selection_color` | null: from the page; `from`: the theme's `state.selected` of the background |
 | `theme.style_system_controls` | null: Dark Reader's choice |
 | `theme.font_family` | null: each page's fonts; families in fallback order |
+| `border_radius` | null: each page's own corners; `.{ .pixels = 8 }` forces 8px on every page, over even its `!important` corners |
+| `border_radius.selector` | `*:not(html, body)`: every element but the page itself; any CSS selector |
 | `kosm_binary` | `~/.local/bin/kosm` |
 | `directory` | `~/.local/share/kosm/firefox` |
 | `native_hosts` | `~/.mozilla/native-messaging-hosts` (LibreWolf: add `~/.librewolf/native-messaging-hosts`) |
@@ -62,3 +65,10 @@ An `App{}` writes nothing.
 `extension/darkreader.js` is the npm package `darkreader` 4.9.135 (MIT, `extension/darkreader-LICENSE`),
 unchanged. The engine has none of the Dark Reader extension's per-site fixes, so a few sites look
 worse than with the extension; switch their colors off with the toolbar button.
+
+## Corners
+
+The border radius goes into each frame as a user stylesheet, so it wins over every page's own
+corners. It also rounds what a page keeps square or round on purpose (circular avatars become
+rounded squares); narrow `selector`, or switch corners off for a site with the toolbar button.
+Elements inside shadow roots keep their own corners.

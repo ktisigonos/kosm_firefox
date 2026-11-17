@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Kosm",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Shows pages in the colors and font of your kosmos, as kosm applies them.",
   "browser_specific_settings": {
     "gecko": {
