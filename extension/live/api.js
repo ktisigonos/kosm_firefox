@@ -49,15 +49,19 @@ function callInWindows(name) {
   }
 }
 
-/// Repaints every browser window as a whole once. A page turning translucent can otherwise stay
-/// drawn opaque until the window is refocused, as the browser keeps the window's opaque area: a
-/// near-1 opacity on the window's root for two frames makes it recompute that area.
+/// Has every browser window rebuild its whole display list once. The browser keeps the window's
+/// opaque region per painted element and only refreshes the parts it repaints, so a background
+/// turning translucent can stay marked opaque (drawn without the desktop or blur behind it) until
+/// a refocus. A repaint-only change on the root element (its background color, nudged by an
+/// invisible amount for two frames) reaches the viewport, which forces the full rebuild.
 function repaintWindows() {
   for (const window of Services.wm.getEnumerator("navigator:browser")) {
-    const style = window.document.documentElement.style;
-    if (style.getPropertyValue("opacity") !== "") continue;
-    style.setProperty("opacity", "0.999");
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => style.removeProperty("opacity")));
+    const root = window.document.documentElement;
+    if (root.style.getPropertyValue("background-color") !== "") continue;
+    const color = window.getComputedStyle(root).backgroundColor;
+    const nudged = color === "rgba(0, 0, 0, 0)" ? "rgba(0, 0, 0, 0.001)" : `color-mix(in srgb, ${color} 99.9%, transparent)`;
+    root.style.setProperty("background-color", nudged);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => root.style.removeProperty("background-color")));
   }
 }
 
