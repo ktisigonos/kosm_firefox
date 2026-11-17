@@ -5,7 +5,8 @@ colors and font, through kosm's own extension, and changed at once by every appl
 
 - **Kosm** (`extension/`) styles pages: Dark Reader's engine in the values kosm wrote, optionally
   corners forced to one radius, and a toolbar button with a colors, a font and (while corners are
-  forced) a corners switch for the current site and every site switched before.
+  forced) a corners switch for the current site and every site switched before. Corners are off
+  on every site until switched on there.
   It can be signed for Mozilla's Firefox, but isn't yet.
 - **Kosm Live** (`extension/live/`) is Kosm plus an experiment API: it also sets the prefs other
   apps write for it in the running browser, and calls the window methods they name to recompute
@@ -48,7 +49,7 @@ Dark Reader or a Stylus font style, remove them.
 | `theme.selection_color` | null: from the page; `from`: the theme's `state.selected` of the background |
 | `theme.style_system_controls` | null: Dark Reader's choice |
 | `theme.font_family` | null: each page's fonts; families in fallback order |
-| `border_radius` | null: each page's own corners; `.{ .pixels = 8 }` forces 8px on every page, over even its `!important` corners |
+| `border_radius` | null: each page's own corners; `.{ .pixels = 8 }` forces 8px on the sites switched on in the toolbar button, over even their `!important` corners |
 | `border_radius.selector` | `*:not(html, body)`: every element but the page itself; any CSS selector |
 | `kosm_binary` | `~/.local/bin/kosm` |
 | `directory` | `~/.local/share/kosm/firefox` |
@@ -68,7 +69,8 @@ worse than with the extension; switch their colors off with the toolbar button.
 
 ## Corners
 
-The border radius goes into each frame as a user stylesheet, so it wins over every page's own
+Corners are opt-in: a site keeps its own until you tick Corners for it in the toolbar button. The
+border radius then goes into each of its frames as a user stylesheet, so it wins over every page's own
 corners. It also rounds what a page keeps square or round on purpose (circular avatars become
-rounded squares); narrow `selector`, or switch corners off for a site with the toolbar button.
+rounded squares); narrow `selector`, or switch corners off for the site again.
 Elements inside shadow roots keep their own corners.

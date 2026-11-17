@@ -11,8 +11,8 @@ const kosm = @import("kosm");
 
 /// Dark Reader's theme for pages. Null fields are not written, so Dark Reader's own apply.
 theme: Theme = .{},
-/// Corners forced on pages, over each page's own, even its `!important` ones. null: each
-/// page's own corners.
+/// Corners forced on the sites switched on in the toolbar button (none until then), over each
+/// page's own, even its `!important` ones. null: each page's own corners everywhere.
 border_radius: ?BorderRadius = null,
 /// The kosm the browser starts as the relay; `~` is expanded. Default: `~/.local/bin/kosm`.
 kosm_binary: []const u8 = "~/.local/bin/kosm",
